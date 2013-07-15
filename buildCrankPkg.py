@@ -13,7 +13,16 @@ import shutil
 import subprocess
 
 __author__ = 'Graham Gilbert (graham@grahamgilbert.com)'
-__version__ = '0.1'
+__version__ = '0.2'
+
+def callCmd(command):
+    """Simple utility function that calls a command via subprocess
+    ---
+    Arguments: command - A list of arguments for the command
+    Returns: Nothing
+    """
+    task = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    task.communicate()
 
 def rchmod(path, permissions):
     '''Recursively sets permissions on a file path. Similar to chmod -R in bash.'''
@@ -78,12 +87,21 @@ def copyFiles(repo):
     shutil.copy(sourcefile, dest)
     
     return tempdir
+
+def cloneRepo(repoUrl):
+    tempdir = '/tmp/pymacadmin'
+    if os.path.exists(tempdir):
+        shutil.rmtree(tempdir)
+    command = ['git', 'clone', repoUrl, tempdir]
+    callCmd(command)
     
+    return tempdir
     
 def main():
     '''Creates a pkg to deploy CrankD from a fresh git clone.'''
     parser = argparse.ArgumentParser(description='Builds a CrankD package for deployent on OS X')
-    parser.add_argument('--repo', help='The path to the clone pymacadmin git repository')
+    parser.add_argument('--repopath', help='The path to the clone pymacadmin git repository')
+    parser.add_argument('--remoterepo', help='The address of a remote pymacadmin git repository that isn\'t the default')
     parser.add_argument('--version', help='The version number of the package you\'re building Defaults to 1.0')
     parser.add_argument('--identifier', help='The identifier of the package. Defaults to com.grahamgilbert.crankd')
     args = vars(parser.parse_args())
@@ -93,13 +111,19 @@ def main():
         exit(-1)
         
     # crap out of any of the needed arguments havent been passed
-    if not args['repo']:
-        print 'No repository specified, exiting.'
-        sys.exit(1)
+    if not args['repopath']:
+        if args['remoterepo']:
+            repoUrl = args['remoterepo']
+        else:
+            repoUrl = 'https://github.com/acdha/pymacadmin.git'
+        # clone the repo to a tempdir
+        repoPath = cloneRepo(repoUrl)
+    else:
+        repoPath = args['repopath']
         
     # make sure the repo path exists
-    if not os.path.isdir(args['repo']):
-        print args['repo']+ ' does not exist. Please specify a valid path.'
+    if not os.path.isdir(repoPath):
+        print repoPath + ' does not exist. Please specify a valid path.'
         sys.exit(1)
     
     if args['version']:
@@ -111,11 +135,10 @@ def main():
         identifier = args['identifier']
     else:
         identifier = 'com.grahamgilbert.crankd'
-        
 
-    tempFolder = copyFiles(args['repo'])
+    tempFolder = copyFiles(repoPath)
     
     buildPkg(tempFolder, version, identifier)
 
 if __name__ == '__main__':  
-    main() 
+    main()
