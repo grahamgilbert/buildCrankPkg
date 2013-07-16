@@ -42,5 +42,19 @@ Once all your files are in place, simply call the script using ``sudo``.
 
 ```
 cd ~/src/CrankPkg
-sudo ./buildCrankPkg.py --repo ~/src/PyMacAdmin --version 2.1 --identifier com.example.crankd
+sudo ./buildCrankPkg.py  --version 2.1 --identifier com.example.crankd
+```
+
+Using a local repository located at ~/src/PyMacAdmin:
+
+```
+cd ~/src/CrankPkg
+sudo ./buildCrankPkg.py --repopath ~/src/PyMacAdmin --version 2.1 --identifier com.example.crankd
+```
+
+Using a remote repository located at https://github.com/blah/bahblah.git
+
+```
+cd ~/src/CrankPkg
+sudo ./buildCrankPkg.py --remoterepo https://github.com/blah/bahblah.git --version 2.1 --identifier com.example.crankd
 ```
